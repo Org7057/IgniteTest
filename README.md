@@ -1,3 +1,6 @@
+# Get info about generators
+npx ignite-cli generate --help
+
 # Welcome to your new ignited app!
 
 [![CircleCI](https://circleci.com/gh/infinitered/ignite.svg?style=svg)](https://circleci.com/gh/infinitered/ignite)
