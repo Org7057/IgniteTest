@@ -1,7 +1,10 @@
-import React, { FC } from "react"
-import { View, ViewStyle, TextStyle, ImageStyle, SafeAreaView } from "react-native"
+import React, { FC, useState, Fragment } from "react"
+import { View, ViewStyle, TextStyle, ImageStyle, SafeAreaView, Linking, TouchableOpacity } from "react-native"
 import { StackScreenProps } from "@react-navigation/stack"
-import { observer } from "mobx-react-lite"
+import { observer } from "mobx-react-lite";
+import { RNCamera } from 'react-native-camera';
+import QRCodeScanner from 'react-native-qrcode-scanner';
+
 import {
   Button,
   Header,
@@ -89,7 +92,42 @@ const FOOTER_CONTENT: ViewStyle = {
 export const WelcomeScreen: FC<StackScreenProps<NavigatorParamList, "welcome">> = observer(
   ({ navigation }) => {
     const nextScreen = () => navigation.navigate("demo")
+    const [ cameraOn, setCameraOn ] = useState( false );
+    const [ scan, setScan ] = useState( false );
+    const [ ScanResult, setScanResult ] = useState( false );
+    const [ result, setResult ] = useState( null );
+    // const scanner = useRef( null );
+    const [ scanner, setScanner ] = useState( null );
 
+    const onSuccess = ( e ) => {
+      const check = e.data.substring(0, 4);
+      console.log('scanned data' + check);
+      setResult( e );
+      setScan( false );
+      setScanResult( true );
+
+      if (check === 'http') {
+          Linking
+              .openURL(e.data)
+              .catch(err => console.error('An error occured', err));
+      } else {
+          setResult( e );
+          setScan( false );
+          setScanResult( true );
+      }
+
+  }
+
+    const activeQR = ( ) => {
+        setScan( true );
+    }
+
+    const scanAgain = () => {
+        setScan( true );
+        setScanResult( false );
+    }
+
+  
     return (
       <View testID="WelcomeScreen" style={FULL}>
         <GradientBackground colors={["#422443", "#281b34"]} />
@@ -110,6 +148,61 @@ export const WelcomeScreen: FC<StackScreenProps<NavigatorParamList, "welcome">> 
             For everyone else, this is where you'll see a live preview of your fully functioning app
             using Ignite.
           </Text>
+          <Text onPress = { ( ) => { console.log( 'ckick', cameraOn ); setCameraOn( prev => !prev ); } } >
+            Camera on { cameraOn ? 'True' : 'False' }
+          </Text>
+          {!scan && !ScanResult &&
+                <View>
+
+                    <TouchableOpacity onPress={ activeQR } >
+                        <Text>Click to Scan !</Text>
+                    </TouchableOpacity>
+
+                </View>
+          }
+
+          {ScanResult &&
+              <Fragment>
+                  <Text>Result !</Text>
+                  <View>
+                      <Text>Type : { result.type }</Text>
+                      <Text>Result : { result.data }</Text>
+                      <Text numberOfLines={1}>RawData: { result.rawData }</Text>
+                      <TouchableOpacity onPress={ scanAgain }>
+                          <Text>Click to Scan again!</Text>
+                      </TouchableOpacity>
+
+                  </View>
+              </Fragment>
+          }
+          {
+            scan
+            &&
+              <QRCodeScanner
+                  reactivate={true}
+                  showMarker={true}
+                  ref={ ( node ) => setScanner( node ) }
+                  onRead={ onSuccess }
+                  topContent={
+                      <Text>
+                          Go to <Text>wikipedia.org/wiki/QR_code</Text>
+                          on your computer and scan the QR code to test.
+                      </Text>
+                  }
+                  bottomContent={
+                      <View>
+                          <TouchableOpacity onPress={ ( ) => scanner.reactivate()}>
+                              <Text>OK. Got it!</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity onPress={ ( ) => setScan( false ) }>
+                              <Text>Stop Scan</Text>
+                          </TouchableOpacity>
+                      </View>
+
+                  }
+              />
+          }
         </Screen>
         <SafeAreaView style={FOOTER}>
           <View style={FOOTER_CONTENT}>
