@@ -12,6 +12,12 @@ podfile_properties = JSON.parse(File.read('./Podfile.properties.json')) rescue {
 target 'TempPOC' do
   use_expo_modules!
   config = use_native_modules!
+  #Permission
+  permissions_path = '../node_modules/react-native-permissions/ios'
+
+  pod 'Permission-Camera', :path => "#{ permissions_path }/Camera.podspec"
+  pod 'react-native-camera', :path => '../node_modules/react-native-camera'
+  pod 'RNPermissions', :path => '../node_modules/react-native-permissions'
 
   use_react_native!(
     :path => config[:reactNativePath],
